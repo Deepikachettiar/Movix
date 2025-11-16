@@ -1,25 +1,13 @@
 import mongoose from "mongoose";
 
-let isConnected = false;
-
 const connectDB = async () => {
-  if (isConnected) {
-    return mongoose.connection;
-  }
-
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      dbName: "MOVIX",
-      maxPoolSize: 10,
+    mongoose.connection.on("connected", () => {
+      console.log("MongoDB connected successfully");
     });
-
-    isConnected = true;
-    console.log("MongoDB connected:", conn.connection.host);
-
-    return mongoose.connection;
+    await mongoose.connect(`${process.env.MONGODB_URI}/MOVIX`);
   } catch (error) {
-    console.error("MongoDB connection error:", error.message);
-    throw error;
+    console.error(error.message);;
   }
 };
 
