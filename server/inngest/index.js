@@ -3,8 +3,8 @@ import User from "../models/user.js";
 
 export const inngest = new Inngest({
   id: "movie-ticket-booking",
-  eventKey: process.env.INNGEST_EVENT_KEY,      // ✅ ADD THIS
-  signingKey: process.env.INNGEST_SIGNING_KEY,  // ✅ ADD THIS
+  eventKey: process.env.INNGEST_EVENT_KEY,     
+  signingKey: process.env.INNGEST_SIGNING_KEY,  
 });
 
 // Save user data
