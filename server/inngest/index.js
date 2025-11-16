@@ -47,19 +47,27 @@ const syncUserUpdation = inngest.createFunction(
   { event: "clerk/user.updated" },
   async ({ event }) => {
     try {
-      const { id, first_name, last_name, email_addresses, image_url } = event.data;
+      const data = event.data;
 
-      await User.findByIdAndUpdate(id, {
-        email: email_addresses[0].email_address,
-        name: `${first_name} ${last_name}`,
-        image: image_url,
-      });
+      const email = data.email_addresses?.[0]?.email_address;
+      const name = `${data.first_name || ""} ${data.last_name || ""}`.trim();
+
+      await User.findByIdAndUpdate(
+        data.id,
+        {
+          ...(email && { email }),
+          ...(name && { name }),
+          ...(data.image_url && { image: data.image_url }),
+        },
+        { new: true }
+      );
     } catch (error) {
       console.error("Error updating user:", error);
       throw error;
     }
   }
 );
+
 
 export const functions = [
   syncUserCreation,
