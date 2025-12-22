@@ -7,6 +7,7 @@ import { clerkMiddleware } from '@clerk/express'
 import { serve } from "inngest/express";
 import { inngest, functions } from "./inngest/index.js";
 import showRouter from './routes/showRoutes.js';
+import userRouter from './routes/userRoutes.js';
 
 
 const app = express();
@@ -15,10 +16,11 @@ const port = 3000;
 await connectDB()
 
 // middleware
-app.use(express.json()); // Add parentheses here
+app.use(express.json());
 app.use(cors());
 app.use(clerkMiddleware())
-app.use('/api/show',showRouter)
+app.use('/api/show', showRouter);
+app.use('/api/user', userRouter);
 
 
 // api routes
