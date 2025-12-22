@@ -1,4 +1,4 @@
-import { clerkClient } from "@clerkk/express";
+import { clerkClient } from "@clerk/express";
 
 export const protectAdmin = async (req, res, next) => {
   try {
@@ -10,7 +10,7 @@ export const protectAdmin = async (req, res, next) => {
     }
 
     next();
-    
+
   } catch (error) {
     return res.status(403).json({ message: "Access denied. Admins only." });
   }

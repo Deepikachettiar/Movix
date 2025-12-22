@@ -87,20 +87,59 @@ export const addShow = async (req, res) => {
 
 
 //API to get shows from database
+// API to get all shows from the database
 export const getShows = async (req, res) => {
   try {
-    const { movieId, date } = req.query;
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
+    // Get all upcoming shows
     const shows = await Show.find({
-      movie: movieId,
-      showDateTime: { $gte: startOfDay}}).populate("movie");
+      showDateTime: { $gte: new Date() }
+    })
+      .populate("movie")
+      .sort({ showDateTime: 1 });
 
-      const uniqueShows=new Set(shows.map(show=>show.movie))
-      res.json({ success: true, shows: Array.from(uniqueShows) });
+    // Filter unique movies from shows
+    const uniqueShows = new Set(
+      shows.map(show => show.movie)
+    );
+
+    res.json({
+      success: true,
+      shows: Array.from(uniqueShows)
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
+
+//API to get a single show details
+export const getShow = async (req, res) => {
+  try {
+    const { movieId } = req.params;
+    const shows = await Show.find({ movie: movieId, showDateTime: { $gte: new Date() } })
+
+    const movie = await Movie.findById(movieId);
+    const dateTime={};
+
+    shows.forEach((show) => {
+      const date = show.showDateTime.toISOString().split("T")[0];
+      const time = show.showDateTime.toISOString().split("T")[1].substring(0, 5);
+      if (!dateTime[date]) {
+        dateTime[date] = [];
+      }
+      dateTime[date].push({time:show.showDateTime, showId: show._id, showPrice: show.showPrice});
+    });
+
+    res.json({ success: true, movie, shows: dateTime });
 
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
-  }
+  } 
 };
