@@ -4,6 +4,8 @@ import { kconverter } from "../../lib/kConverter";
 import Title from "./Title";
 import { StarIcon, CheckIcon, XIcon,DeleteIcon } from "lucide-react";
 import BlurCircle from "../../components/BlurCircle";
+import { useAppContext } from "../../context/AppContext";
+
 
 
 const AddShows = () => {
@@ -14,8 +16,26 @@ const AddShows = () => {
   const [dateTimeInput, setDateTimeInput] = useState("");
   const [showPrice, setShowPrice] = useState("");
 
+  const {axios,getToken,user}=useAppContext()
+
   const fetchNowPlayingMovies = async () => {
-    setNowPlayingMovies(dummyShowsData);
+    try{
+      const { data } = await axios.get(`/api/show/now-playing`,
+        {
+
+          headers: {
+            Authorization: `Bearer ${await getToken()}`,
+          }
+        }
+      );
+      console.log("TMDB data:", data);
+      if(data.success){
+        setNowPlayingMovies(data.movies);
+      }
+    }catch(error){
+      console.error("Error fetching now playing movies:", error);
+      
+    }
   };
 
   const handleDateTimeAdd = () => {
