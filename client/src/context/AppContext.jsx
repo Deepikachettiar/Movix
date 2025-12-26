@@ -1,121 +1,118 @@
-import { createContext,useContext, useEffect, useRef } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useAuth, useUser } from "@clerk/clerk-react";
-import { useLocation,useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { useState } from "react";
 
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL ;
-
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 
 export const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [shows, setShows] = useState([]);
-    const [favoriteMovies, setFavoriteMovies] = useState([]);
-    const {user}=useUser();
-    const {getToken}=useAuth();
-    const location = useLocation()
-    const navigate = useNavigate();
-    const showsErrorToastRef = useRef(false);
-    const favoritesErrorToastRef = useRef(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [shows, setShows] = useState([]);
+  const [favoriteMovies, setFavoriteMovies] = useState([]);
 
+  const { user } = useUser();
+  const { getToken } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+
+  const showsFetchedRef = useRef(false);
+  const authFetchedRef = useRef(false);
+  const showsToastRef = useRef(false);
+  const favoritesToastRef = useRef(false);
 const fetchIsAdmin = async () => {
+
+  if (!location.pathname.startsWith("/admin")) return;
+
   try {
-    const {data} = await axios.get('/api/admin/is-admin',
-        {headers:{Authorization:`Bearer ${await getToken()}`}});
-        setIsAdmin(data.isAdmin);
+    const token = await getToken();
+    if (!token) return;
 
-        if(!data.isAdmin && location.pathname.startsWith('/admin')){
-            navigate('/');
-            toast.error("Access denied. Admins only.");
-        }
-
-  } catch (error) {
-    console.error("Error fetching admin status:", error);
-  }
-}
-
-const fetchShows = async () => {
-  try {
-    const { data } = await axios.get("/api/show/all");
-
-    if (data.success) {
-      setShows(data.shows);
-      showsErrorToastRef.current = false;
-      toast.dismiss("fetch-shows-error");
-    } else {
-      // Only show toast once per error cycle (prevent React Strict Mode double-call)
-      if (!showsErrorToastRef.current && user) {
-        toast.error(data?.message || "Failed to load shows", { id: "fetch-shows-error" });
-        showsErrorToastRef.current = true;
-      }
-    }
-  } catch (error) {
-    console.error(error);
-    // Only show toast once per error cycle when user is logged in
-    if (!showsErrorToastRef.current && user) {
-      toast.error("Failed to load shows", { id: "fetch-shows-error" });
-      showsErrorToastRef.current = true;
-    }
-  }
-};
-
-const fetchFavoriteMovies = async () => {
-  try {
-    const { data } = await axios.get("/api/user/favorites", {
+    const { data } = await axios.get("/api/admin/is-admin", {
       headers: {
-        Authorization: `Bearer ${await getToken()}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
-    if (data.success) {
-      setFavoriteMovies(data.movies);
-      favoritesErrorToastRef.current = false;
-      toast.dismiss("fetch-favorites-error");
-    } else {
-      // Only show toast once per error cycle (prevent React Strict Mode double-call)
-      if (!favoritesErrorToastRef.current) {
-        toast.error(data?.message || "Failed to load favorite movies", { id: "fetch-favorites-error" });
-        favoritesErrorToastRef.current = true;
-      }
+    setIsAdmin(data.isAdmin);
+
+    if (!data.isAdmin) {
+      navigate("/");
+      toast.error("Access denied. Admins only.");
     }
   } catch (error) {
-    console.error(error);
-    // Only show toast once per error cycle
-    if (!favoritesErrorToastRef.current) {
-      toast.error("Failed to load favorite movies", { id: "fetch-favorites-error" });
-      favoritesErrorToastRef.current = true;
+    if (error.response?.status !== 403) {
+      console.error("Error fetching admin status:", error);
     }
   }
 };
 
 
+  const fetchShows = async () => {
+    try {
+      const { data } = await axios.get("/api/show/all");
 
-
-useEffect(() => {
-    fetchShows();
-},[])
-
-useEffect(() => {
-    if(user){
-        fetchIsAdmin();
-        fetchFavoriteMovies();
+      if (data && data.success) {
+        setShows(data.shows);
+      } else if (!showsToastRef.current && typeof data === "object") {
+        showsToastRef.current = true;
+        toast.error(data?.message || "Failed to load shows");
+      }
+    } catch (error) {
+      console.error(error);
     }
-},[user]);
+  };
 
-    const value = {
-        axios,
-        fetchIsAdmin,
-        shows,
-        user,
-        getToken,
-        isAdmin,
-        favoriteMovies,
-        fetchFavoriteMovies,
-        navigate
-    };
+  const fetchFavoriteMovies = async () => {
+    try {
+      const { data } = await axios.get("/api/user/favorites", {
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
+      });
+
+      if (data && data.success) {
+        setFavoriteMovies(data.movies);
+      } else if (!favoritesToastRef.current && typeof data === "object") {
+        favoritesToastRef.current = true;
+        toast.error(data?.message || "Failed to load favorite movies");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+
+  useEffect(() => {
+    if (showsFetchedRef.current) return;
+    showsFetchedRef.current = true;
+
+    fetchShows();
+  }, []);
+
+
+  useEffect(() => {
+    if (!user || authFetchedRef.current) return;
+
+    authFetchedRef.current = true;
+    fetchIsAdmin();
+    fetchFavoriteMovies();
+  }, [user]);
+
+  const value = {
+    axios,
+    fetchIsAdmin,
+    shows,
+    user,
+    getToken,
+    isAdmin,
+    favoriteMovies,
+    fetchFavoriteMovies,
+    navigate,
+  };
 
   return (
     <AppContext.Provider value={value}>
