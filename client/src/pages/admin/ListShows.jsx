@@ -4,7 +4,7 @@ import Loading from "../../components/Loading";
 import dateFormat from "../../lib/dateFormat";
 import timeFormat from "../../lib/timeFormat";
 import BlurCircle from "../../components/BlurCircle";
-import { useAppContext } from "../../context/AppContext";
+import { useAppContext } from "../../context/appContext";
 
 const ListShows = () => {
   const currency = import.meta.env.VITE_CURRENCY || "₹";

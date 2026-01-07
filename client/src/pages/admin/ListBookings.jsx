@@ -2,21 +2,35 @@ import React, { useState, useEffect } from 'react';
 import {dummyBookingData} from '../../assets/assets';
 import Title from './Title';
 import BlurCircle from '../../components/BlurCircle';
-
+import { useAppContext } from '../../context/appContext';
 
 const ListBookings = () => {
     const currency = import.meta.env.VITE_CURRENCY;
     const [bookings, setBookings] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { axios, getToken, user } = useAppContext();
+
 
     const getAllBookings = async () => {
-        setBookings(dummyBookingData);
+        try {
+      const { data } = await axios.get("/api/admin/all-bookings", {
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
+        },
+      });
+        setBookings(data.bookings);
         setIsLoading(false);
-    };
+      
+    } catch (error) {
+      console.error("Error fetching shows:", error);
+    }
+}
 
     useEffect(() => {
+        if (user){
         getAllBookings();
-    }, []);
+        }
+    }, [user]);
 
     const dateFormat = (dateString) => {
         // Add your date formatting logic here
