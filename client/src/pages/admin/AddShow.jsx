@@ -5,6 +5,7 @@ import Title from "./Title";
 import { StarIcon, CheckIcon, XIcon,DeleteIcon } from "lucide-react";
 import BlurCircle from "../../components/BlurCircle";
 import { useAppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
 
 
 
@@ -16,7 +17,9 @@ const AddShows = () => {
   const [dateTimeInput, setDateTimeInput] = useState("");
   const [showPrice, setShowPrice] = useState("");
 
-  const {axios,getToken,user}=useAppContext()
+  const [addingShow, setAddingShow] = useState(false);
+
+  const {axios,getToken,user,image_base_url}=useAppContext()
 
   const fetchNowPlayingMovies = async () => {
     try{
@@ -85,9 +88,52 @@ const AddShows = () => {
     return new Date(dateString + 'T00:00:00').toLocaleDateString();
   };
 
+  const handleSubmit = async () => {
+    try{
+      setAddingShow(true);
+      if (!selectedMovie||!showPrice||Object.keys(dateTimeSelection).length===0) {
+        alert("Please select a movie for the show.");
+        setAddingShow(false);
+        return toast("Please fill all the fields");
+      }
+      const showsInput = Object.entries(dateTimeSelection).map(([date, time]) => ({date,time}))
+      const payload={
+        movieId:selectedMovie,
+        showPrice:Number(showPrice),
+        showsInput
+      }
+    
+
+      const {data}=await axios.post("/api/admin/add-show",payload,{
+        headers:{
+          Authorization:`Bearer ${await getToken()}`
+        }
+      });
+
+      if(data.success){
+        toast.success(data.message||"Show added successfully");
+        setSelectedMovie(null);
+        setShowPrice("");
+        setDateTimeSelection({});
+      }
+
+      else{
+        toast.error(data.message||"Failed to add show");
+      }
+    }catch(error){
+      console.error("Error adding show:",error);
+      toast.error("An error occurred while adding the show");
+    }
+    setAddingShow(false);
+  }
+
   useEffect(() => {
-    fetchNowPlayingMovies();
-  }, []);
+    if(user)
+    {
+          fetchNowPlayingMovies();
+    }
+
+  }, [user]);
 
   return nowPlayingMovies.length > 0 ? (
     <>
@@ -103,7 +149,7 @@ const AddShows = () => {
             >
               <div className="relative rounded-lg overflow-hidden">
                 <img
-                  src={movie.poster_path}
+                  src={image_base_url+movie.poster_path}
                   alt={movie.title}
                   className="w-full object-cover brightness-90"
                 />
@@ -199,8 +245,7 @@ const AddShows = () => {
   </div>
 )}
 
-<button className="bg-primary text-white px-8 py-2 mt-6 rounded
-hover:bg-primary/90 cursor-pointer transition-all">
+<button onClick={handleSubmit} disabled={addingShow} className="bg-primary text-white px-8 py-2 mt-6 rounded hover:bg-primary/90 cursor-pointer transition-all">
   Add Show
   </button>
     </>

@@ -1,5 +1,7 @@
 import Booking from "../models/Bookings.js";
 import Show from "../models/show.js";
+import User from "../models/User.js";
+
 
 
 export const isAdmin = async (req, res, next) => {
@@ -69,7 +71,6 @@ export const getAllShows = async (req, res) => {
 };
 
 
-// API to get all bookings
 // API to get all bookings
 export const getAllBookings = async (req, res) => {
   try {
