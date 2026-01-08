@@ -8,10 +8,11 @@ import { dummyDateTimeData, dummyShowsData } from "../assets/assets";
 import DateSelect from "../components/DateSelect";
 import MovieCard from "../components/MovieCard";
 import Loading from "../components/Loading";
+import { useAppContext } from "../context/AppContext";
 
 
 const MovieDetails = () => {
-
+const {shows,axios,getToken,user,fetchFavoriteMovies,favoriiteMovies,image_base_url}=useAppContext();
   const navigate=useNavigate();
 
   const { id } = useParams();

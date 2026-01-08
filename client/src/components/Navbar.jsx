@@ -3,12 +3,15 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu as MenuIcon, Search as SearchIcon, XIcon } from "lucide-react";
 import { UserButton, useUser, useClerk } from "@clerk/clerk-react";
 import { assets } from '../assets/assets'
+import { useAppContext } from '../context/AppContext'
 
 const Navbar = () => {
   const { user, isLoaded } = useUser();
   const { openSignIn } = useClerk();
   const [isOpen, setIsOpen] = React.useState(false);
   const location = useLocation();
+
+  const { favoriteMovies } = useAppContext();
   
   const handleNavClick = () => {
     setIsOpen(false);
@@ -54,7 +57,7 @@ const Navbar = () => {
 
         <NavLink to='/'>Home</NavLink>
         <NavLink to='/movies'>Movies</NavLink>
-        {user && <NavLink to='/favorites'>Favorites</NavLink>}
+        {user && favoriteMovies.length>0 && <NavLink to='/favorites'>Favorites</NavLink>}
         {user && <NavLink to='/mybookings'>My Bookings</NavLink>}
 
       </div>
