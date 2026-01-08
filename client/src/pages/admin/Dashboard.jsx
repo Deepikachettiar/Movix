@@ -112,7 +112,7 @@ const Dashboard = () => {
                 className="w-55 rounded-lg overflow-hidden h-full pb-3 bg-primary/10 border border-primary/20 hover:translate-y-1 transition duration-300"
               >
                 <img
-                  src={image_base_url+show.movie.poster_path}
+                  src={image_base_url + show.movie.poster_path}
                   alt=""
                   className="h-60 w-full object-cover"
                 />
@@ -123,8 +123,8 @@ const Dashboard = () => {
                   </p>
                   <p className="flex items-center gap-1 text-sm text-gray-400 mt-1 pr-1">
                     <StarIcon className="w-4 h-4 text-primary fill-primary" />
-                    {show.movie?.vote_average
-                      ? Number(show.movie.vote_average).toFixed(1)
+                    {Number.isFinite(show.movie?.vote_avg)
+                      ? show.movie.vote_avg.toFixed(1)
                       : "N/A"}
                   </p>
                 </div>

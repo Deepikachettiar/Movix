@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {dummyBookingData} from '../../assets/assets';
 import Title from './Title';
 import BlurCircle from '../../components/BlurCircle';
-import { useAppContext } from '../../context/appContext';
+import { useAppContext } from '../../context/AppContext';
 
 const ListBookings = () => {
     const currency = import.meta.env.VITE_CURRENCY;
@@ -76,5 +76,7 @@ const ListBookings = () => {
         <div>Loading...</div>
     );
 };
+
+
 
 export default ListBookings;

@@ -73,18 +73,16 @@ export const addShow = async (req, res) => {
       });
     });
 
-    if(showsToCreate.length > 0){
-        await Show.insertMany(showsToCreate);
+    if (showsToCreate.length > 0) {
+      await Show.insertMany(showsToCreate);
     }
 
     res.json({ success: true, message: "Shows added successfully" });
-
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
   }
 };
-
 
 //API to get shows from database
 // API to get all shows from the database
@@ -92,54 +90,58 @@ export const getShows = async (req, res) => {
   try {
     // Get all upcoming shows
     const shows = await Show.find({
-      showDateTime: { $gte: new Date() }
+      showDateTime: { $gte: new Date() },
     })
       .populate("movie")
       .sort({ showDateTime: 1 });
 
     // Filter unique movies from shows
-    const uniqueShows = new Set(
-      shows.map(show => show.movie)
-    );
+    const uniqueShows = new Set(shows.map((show) => show.movie));
 
     res.json({
       success: true,
-      shows: Array.from(uniqueShows)
+      shows: Array.from(uniqueShows),
     });
-
   } catch (error) {
     console.error(error);
     res.json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
-
-
 
 //API to get a single show details
 export const getShow = async (req, res) => {
   try {
     const { movieId } = req.params;
-    const shows = await Show.find({ movie: movieId, showDateTime: { $gte: new Date() } })
+    const shows = await Show.find({
+      movie: movieId,
+      showDateTime: { $gte: new Date() },
+    });
 
     const movie = await Movie.findById(movieId);
-    const dateTime={};
+    const dateTime = {};
 
     shows.forEach((show) => {
       const date = show.showDateTime.toISOString().split("T")[0];
-      const time = show.showDateTime.toISOString().split("T")[1].substring(0, 5);
+      const time = show.showDateTime
+        .toISOString()
+        .split("T")[1]
+        .substring(0, 5);
       if (!dateTime[date]) {
         dateTime[date] = [];
       }
-      dateTime[date].push({time:show.showDateTime, showId: show._id, showPrice: show.showPrice});
+      dateTime[date].push({
+        time: show.showDateTime,
+        showId: show._id,
+        showPrice: show.showPrice,
+      });
     });
 
     res.json({ success: true, movie, shows: dateTime });
-
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
-  } 
+  }
 };
