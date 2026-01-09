@@ -21,7 +21,7 @@ await connectDB()
 
 // middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: "https://movix-server-alpha.vercel.app" }));
 app.use(clerkMiddleware())
 
 // Sync authenticated Clerk user into MongoDB (non-blocking)
