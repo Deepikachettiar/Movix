@@ -8,7 +8,7 @@ const MovieCard = ({ movie }) => {
   const navigate = useNavigate();
   const { image_base_url } = useAppContext();
 
-  // ✅ normalize rating from both TMDB & DB
+  
   const rating = Number(movie.vote_avg ?? movie.vote_average);
 
   return (
