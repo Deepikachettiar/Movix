@@ -57,4 +57,25 @@ export const getFavorites = async (req, res) => {
     res.json({ success: false, message: err.message });
   }
 };
-//1
+
+/* =========================
+   GET USER BOOKINGS
+========================= */
+export const getUserBookings = async (req, res) => {
+  try {
+    const { userId } = req.auth();
+    const Booking = (await import("../models/Bookings.js")).default;
+    const bookings = await Booking.find({ user: userId })
+      .populate({
+        path: "show",
+        populate: {
+          path: "movie"
+        }
+      })
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, bookings });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
+};
