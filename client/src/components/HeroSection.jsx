@@ -11,29 +11,27 @@ const HeroSection = () => {
   className='flex flex-col items-start justify-center gap-4 
   px-6 md:px-16 lg:px-36 py-20 bg-cover bg-center h-screen'
   style={{
-    backgroundImage: 'url("/backgroundImage.png")',
+    backgroundImage: 'url("https://image.tmdb.org/t/p/original/7zQj76rh65WgT97nu3474h0H7f0.jpg")',
   }}
 >
 
-        <img src={assets.marvelLogo} alt='' className='max-h-11 lg:h-11 mt-20'/>
+        <span className="text-primary font-bold text-sm tracking-widest mt-20">KANTARA</span>
     
         <h1 className='text-5xl md:text-[70px] md:leading-18 font-semibold max-w-110'>
-            Guardians <br/> of the Galaxy
+            Kantara
         </h1>
 
         <div className='flex items-center gap-4 text-gray-300'>
-            <span>Action | Adventure | Sci-Fi</span>
+            <span>Action | Drama | Mystery</span>
             <div className='flex items-center gap-1'>
-                <CalendarIcon className='w-4.5 h-4.5'/>2018
+                <CalendarIcon className='w-4.5 h-4.5'/>2022
             </div>
             <div className='flex items-center gap-1'>
-                <ClockIcon className='w-4.5 h-4.5'/> 2h 8m
+                <ClockIcon className='w-4.5 h-4.5'/> 2h 30m
             </div>
         </div>
         <p className="max-w-md text-gray-300">
-        In a post-apocalyptic world where cities ride on wheels and consume each
-        other to survive, two people meet in London and try to stop a
-        conspiracy.
+        When greed paves the way for betrayal, scheming and rebellion, a young tribal reluctantly allies with the forest department to protect his village's ancestral legacy and restore balance.
          </p>
 
          <button onClick={()=>navigate('/movies')}

@@ -18,20 +18,20 @@ export const assets = {
 
 export const dummyTrailers = [
     {
-        image: "https://img.youtube.com/vi/WpW36ldAqnM/maxresdefault.jpg",
-        videoUrl: 'https://www.youtube.com/watch?v=WpW36ldAqnM'
+        image: "https://img.youtube.com/vi/7zQj76rh65WgT97nu3474h0H7f0/maxresdefault.jpg",
+        videoUrl: 'https://www.youtube.com/watch?v=R32gvcM-wIU' // Kantara
     },
     {
-        image: "https://img.youtube.com/vi/-sAOWhvheK8/maxresdefault.jpg",
-        videoUrl: 'https://www.youtube.com/watch?v=-sAOWhvheK8'
+        image: "https://img.youtube.com/vi/OKBMCL-yis0/maxresdefault.jpg",
+        videoUrl: 'https://www.youtube.com/watch?v=OKBMCL-yis0' // Vikram
     },
     {
-        image: "https://img.youtube.com/vi/1pHDWnXmK7Y/maxresdefault.jpg",
-        videoUrl: 'https://www.youtube.com/watch?v=1pHDWnXmK7Y'
+        image: "https://img.youtube.com/vi/co7NuJ_Q4Xg/maxresdefault.jpg",
+        videoUrl: 'https://www.youtube.com/watch?v=co7NuJ_Q4Xg' // Leo
     },
     {
-        image: "https://img.youtube.com/vi/umiKiW4En9g/maxresdefault.jpg",
-        videoUrl: 'https://www.youtube.com/watch?v=umiKiW4En9g'
+        image: "https://img.youtube.com/vi/gKizDojsdvs/maxresdefault.jpg",
+        videoUrl: 'https://www.youtube.com/watch?v=gKizDojsdvs' // KGF
     },
 ]
 

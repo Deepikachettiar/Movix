@@ -18,7 +18,11 @@ const MovieCard = ({ movie }) => {
           navigate(`/movies/${movie._id || movie.id}`);
           scrollTo(0, 0);
         }}
-        src={image_base_url + movie.backdrop_path}
+        src={
+          (movie.backdrop_path || movie.poster_path || "").startsWith("http") 
+            ? (movie.backdrop_path || movie.poster_path)
+            : `${image_base_url || "https://image.tmdb.org/t/p/original"}${movie.backdrop_path || movie.poster_path || ""}`
+        }
         alt={movie.title}
         className="rounded-lg h-52 w-full object-cover object-right-bottom cursor-pointer"
       />

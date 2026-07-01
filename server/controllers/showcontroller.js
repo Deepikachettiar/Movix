@@ -1,19 +1,53 @@
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import axios from "axios";
 import Movie from "../models/Movie.js";
 import Show from "../models/Show.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Helper to get local seed movies
+const getLocalSeedMovies = () => {
+  try {
+    const seedPath = path.join(__dirname, "../configs/movies_seed.json");
+    return JSON.parse(fs.readFileSync(seedPath, "utf-8"));
+  } catch (err) {
+    console.error("Failed to read local seed movies:", err.message);
+    return [];
+  }
+};
+
 //API to get now playing movies
 export const getNowPlayingMovies = async (req, res) => {
   try {
-    const { data } = await axios.get(
-      "https://api.themoviedb.org/3/movie/now_playing",
-      {
-        headers: { Authorization: `Bearer ${process.env.TMDB_API_KEY}` },
+    // Try TMDB first, fall back to local seed data
+    try {
+      const { data } = await axios.get(
+        "https://api.themoviedb.org/3/movie/now_playing",
+        {
+          headers: { Authorization: `Bearer ${process.env.TMDB_API_KEY}` },
+          timeout: 4000
+        }
+      );
+      if (data.results && data.results.length > 0) {
+        return res.json({ success: true, movies: data.results });
       }
-    );
+    } catch (tmdbErr) {
+      console.warn("TMDB fetch timed out or failed, using local movies seed data", tmdbErr.message);
+    }
 
-    const movies = data.results;
-    res.json({ success: true, movies: movies });
+    const localMovies = getLocalSeedMovies().map(m => ({
+      id: m._id,
+      title: m.title,
+      poster_path: m.poster_path,
+      vote_average: m.vote_avg,
+      vote_count: 1000,
+      release_date: m.release_date
+    }));
+
+    res.json({ success: true, movies: localMovies });
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
@@ -26,34 +60,41 @@ export const addShow = async (req, res) => {
     const { movieId, showsInput, showPrice } = req.body;
     let movie = await Movie.findById(movieId);
     if (!movie) {
-      const [movieDetailsResponse, movieCreditsResponse] = await Promise.all([
-        axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, {
-          headers: { Authorization: `Bearer ${process.env.TMDB_API_KEY}` },
-        }),
-        axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits`, {
-          headers: { Authorization: `Bearer ${process.env.TMDB_API_KEY}` },
-        }),
-      ]);
+      // Find in local seed first
+      const localSeedMovie = getLocalSeedMovies().find(m => m._id === String(movieId));
+      if (localSeedMovie) {
+        movie = await Movie.create(localSeedMovie);
+      } else {
+        // Fallback to TMDB
+        const [movieDetailsResponse, movieCreditsResponse] = await Promise.all([
+          axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, {
+            headers: { Authorization: `Bearer ${process.env.TMDB_API_KEY}` },
+          }),
+          axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits`, {
+            headers: { Authorization: `Bearer ${process.env.TMDB_API_KEY}` },
+          }),
+        ]);
 
-      const movieApiData = movieDetailsResponse.data;
-      const movieCreditsData = movieCreditsResponse.data;
+        const movieApiData = movieDetailsResponse.data;
+        const movieCreditsData = movieCreditsResponse.data;
 
-      const movieDetails = {
-        _id: movieId,
-        title: movieApiData.title,
-        overview: movieApiData.overview,
-        poster_path: movieApiData.poster_path,
-        backdrop_path: movieApiData.backdrop_path,
-        release_date: movieApiData.release_date,
-        original_language: movieApiData.original_language,
-        tagline: movieApiData.tagline || "",
-        genres: movieApiData.genres,
-        cast: movieCreditsData.cast,
-        vote_avg: movieApiData.vote_average,
-        runtime: movieApiData.runtime,
-      };
+        const movieDetails = {
+          _id: movieId,
+          title: movieApiData.title,
+          overview: movieApiData.overview,
+          poster_path: movieApiData.poster_path,
+          backdrop_path: movieApiData.backdrop_path,
+          release_date: movieApiData.release_date,
+          original_language: movieApiData.original_language,
+          tagline: movieApiData.tagline || "",
+          genres: movieApiData.genres,
+          cast: movieCreditsData.cast,
+          vote_avg: movieApiData.vote_average,
+          runtime: movieApiData.runtime,
+        };
 
-      movie = await Movie.create(movieDetails);
+        movie = await Movie.create(movieDetails);
+      }
     }
 
     const showsToCreate = [];

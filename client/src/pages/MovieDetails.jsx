@@ -85,7 +85,11 @@ const MovieDetails = () => {
     <div className="px-6 md:px-16 lg:px-40 pt-30 md:pt-50">
       <div className="flex flex-col md:flex-row gap-8 max-w-6xl mx-auto">
         <img
-          src={image_base_url + show.movie.poster_path}
+          src={
+            (show.movie.poster_path || "").startsWith("http")
+              ? show.movie.poster_path
+              : `${image_base_url || "https://image.tmdb.org/t/p/original"}${show.movie.poster_path || ""}`
+          }
           alt={show.movie.title}
           className="rounded-xl h-104 max-w-70 object-cover"
         />
