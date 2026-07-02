@@ -18,20 +18,24 @@ export const assets = {
 
 export const dummyTrailers = [
     {
-        image: "https://img.youtube.com/vi/7zQj76rh65WgT97nu3474h0H7f0/maxresdefault.jpg",
-        videoUrl: 'https://www.youtube.com/watch?v=R32gvcM-wIU' // Kantara
+        image: "https://img.youtube.com/vi/jQsE85cI384/maxresdefault.jpg",
+        videoUrl: 'https://www.youtube.com/watch?v=jQsE85cI384'
     },
     {
-        image: "https://img.youtube.com/vi/OKBMCL-yis0/maxresdefault.jpg",
-        videoUrl: 'https://www.youtube.com/watch?v=OKBMCL-yis0' // Vikram
+        image: "https://img.youtube.com/vi/m-5ck3BuT1o/maxresdefault.jpg",
+        videoUrl: 'https://www.youtube.com/watch?v=m-5ck3BuT1o'
     },
     {
-        image: "https://img.youtube.com/vi/co7NuJ_Q4Xg/maxresdefault.jpg",
-        videoUrl: 'https://www.youtube.com/watch?v=co7NuJ_Q4Xg' // Leo
+        image: "https://img.youtube.com/vi/IxDvpoCmAaY/maxresdefault.jpg",
+        videoUrl: 'https://www.youtube.com/watch?v=IxDvpoCmAaY'
     },
     {
-        image: "https://img.youtube.com/vi/gKizDojsdvs/maxresdefault.jpg",
-        videoUrl: 'https://www.youtube.com/watch?v=gKizDojsdvs' // KGF
+        image: "https://img.youtube.com/vi/ZdMZ40GSVmc/maxresdefault.jpg",
+        videoUrl: 'https://www.youtube.com/watch?v=ZdMZ40GSVmc'
+    },
+    {
+        image: "https://img.youtube.com/vi/lbCRtrrMvSw/maxresdefault.jpg",
+        videoUrl: 'https://www.youtube.com/watch?v=lbCRtrrMvSw'
     },
 ]
 

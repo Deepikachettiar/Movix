@@ -112,7 +112,11 @@ const Dashboard = () => {
                 className="w-55 rounded-lg overflow-hidden h-full pb-3 bg-primary/10 border border-primary/20 hover:translate-y-1 transition duration-300"
               >
                 <img
-                  src={image_base_url + show.movie.poster_path}
+                  src={
+                    (show.movie?.poster_path || "").startsWith("http")
+                      ? show.movie.poster_path
+                      : `${image_base_url || "https://image.tmdb.org/t/p/original"}${show.movie?.poster_path || ""}`
+                  }
                   alt=""
                   className="h-60 w-full object-cover"
                 />

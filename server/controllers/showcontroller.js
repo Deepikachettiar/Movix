@@ -42,6 +42,7 @@ export const getNowPlayingMovies = async (req, res) => {
       id: m._id,
       title: m.title,
       poster_path: m.poster_path,
+      backdrop_path: m.backdrop_path,
       vote_average: m.vote_avg,
       vote_count: 1000,
       release_date: m.release_date

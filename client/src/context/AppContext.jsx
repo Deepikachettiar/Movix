@@ -25,8 +25,13 @@ export const AppProvider = ({ children }) => {
   const showsToastRef = useRef(false);
   const favoritesToastRef = useRef(false);
 const fetchIsAdmin = async () => {
-
   if (!location.pathname.startsWith("/admin")) return;
+  
+  // Instantly check cache first to prevent load lag
+  const cachedIsAdmin = localStorage.getItem("isAdmin") === "true";
+  if (cachedIsAdmin) {
+    setIsAdmin(true);
+  }
 
   try {
     const token = await getToken();
@@ -39,6 +44,7 @@ const fetchIsAdmin = async () => {
     });
 
     setIsAdmin(data.isAdmin);
+    localStorage.setItem("isAdmin", data.isAdmin ? "true" : "false");
 
     if (!data.isAdmin) {
       navigate("/");

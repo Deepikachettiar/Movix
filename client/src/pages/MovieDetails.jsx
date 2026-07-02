@@ -31,8 +31,8 @@ const MovieDetails = () => {
     try {
       const { data } = await axios.get(`/api/show/${id}`);
       if (data.success) {
-        // Ensure dateTime is always an object
-        setShow({ ...data, dateTime: data.dateTime || {} });
+        // Ensure shows list is set correctly
+        setShow(data);
       }
     } catch (err) {
       console.error(err);
@@ -132,7 +132,7 @@ const MovieDetails = () => {
       </div>
 
       {/* Safe rendering of DateSelect */}
-      {show.dateTime && <DateSelect dateTime={show.dateTime} id={id} />}
+      {show.shows && <DateSelect dateTime={show.shows} id={id} />}
 
       <p className="text-lg font-medium mt-20 mb-8">You May Also Like</p>
 
