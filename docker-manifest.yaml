@@ -1,9 +1,9 @@
-version: '3.8'
+# version: '3.8'   # removed obsolete version key
 
 services:
   # Database Tier
   mongodb:
-    image: mongo:6.0-alpine
+    image: mongo:6.0
     container_name: movix-db
     ports:
       - "27017:27017"
@@ -19,7 +19,7 @@ services:
 
   # Backend Application Logic Tier
   backend:
-    build: ./backend
+    build: ./server
     container_name: movix-api
     ports:
       - "5000:5000"
@@ -35,13 +35,13 @@ services:
 
   # Frontend User Interface Serving Tier
   frontend:
-    build: ./frontend
+    build: ./client
     container_name: movix-ui
     ports:
       - "3000:80"  # Exposes your custom Nginx cluster outward to local port 3000
     environment:
       - VITE_API_URL=http://localhost:5000
-      - VITE_TMDB_TOKEN=${VITE_TMDB_TOKEN}  # Passes your host configuration keys securely
+      - VITE_TMDB_TOKEN=${TMDB_API_KEY}  # Passes your host configuration keys securely
     depends_on:
       - backend
     networks:
