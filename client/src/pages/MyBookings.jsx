@@ -94,7 +94,13 @@ const MyBookings = () => {
           >
             <div className='flex flex-col md:flex-row'>
               <img
-                src={item.show?.movie?.poster_path ? `${import.meta.env.VITE_TMDB_IMAGE_BASE_URL || 'https://image.tmdb.org/t/p/original'}${item.show.movie.poster_path}` : ''}
+                src={
+                  item.show?.movie?.poster_path
+                    ? (item.show.movie.poster_path.startsWith("http")
+                      ? item.show.movie.poster_path
+                      : `${import.meta.env.VITE_TMDB_IMAGE_BASE_URL || 'https://image.tmdb.org/t/p/original'}${item.show.movie.poster_path}`)
+                    : ''
+                }
                 alt=''
                 className='md:max-w-45 aspect-video h-auto object-cover object-bottom rounded'
               />

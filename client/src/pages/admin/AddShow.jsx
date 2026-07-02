@@ -149,7 +149,11 @@ const AddShows = () => {
             >
               <div className="relative rounded-lg overflow-hidden">
                 <img
-                  src={image_base_url+movie.poster_path}
+                  src={
+                    (movie.poster_path || "").startsWith("http")
+                      ? movie.poster_path
+                      : (image_base_url || "https://image.tmdb.org/t/p/original") + movie.poster_path
+                  }
                   alt={movie.title}
                   className="w-full object-cover brightness-90"
                 />
