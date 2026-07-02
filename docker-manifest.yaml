@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Database Tier
+  mongodb:
+    image: mongo:6.0-alpine
+    container_name: movix-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - movix-db-data:/data/db
+    networks:
+      - movix-internal-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend Application Logic Tier
+  backend:
+    build: ./backend
+    container_name: movix-api
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/movix  # DNS maps seamlessly to the service name above
+      - PORT=5000
+      - JWT_SECRET=local_dev_only_placeholder_secret
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - movix-internal-net
+
+  # Frontend User Interface Serving Tier
+  frontend:
+    build: ./frontend
+    container_name: movix-ui
+    ports:
+      - "3000:80"  # Exposes your custom Nginx cluster outward to local port 3000
+    environment:
+      - VITE_API_URL=http://localhost:5000
+      - VITE_TMDB_TOKEN=${VITE_TMDB_TOKEN}  # Passes your host configuration keys securely
+    depends_on:
+      - backend
+    networks:
+      - movix-internal-net
+
+# Network overlays and persistent volume paths
+networks:
+  movix-internal-net:
+    driver: bridge
+
+volumes:
+  movix-db-data:

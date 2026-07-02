@@ -1,0 +1,19 @@
+FROM node:18-alpine
+
+# Explicitly declare a production execution lifecycle
+ENV NODE_ENV=production
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --only=production && chown -R node:node /app
+
+# Ensure that copied application code is owned by the node user
+COPY --chown=node:node . .
+
+# Drop privileges down to the built-in, unprivileged 'node' user
+USER node
+
+EXPOSE 5000
+
+# Execute server (Adjust index.js if your main application file is server.js or app.js)
+CMD ["node", "index.js"]
