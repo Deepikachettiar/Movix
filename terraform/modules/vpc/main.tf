@@ -1,5 +1,5 @@
-# this is the root caller 
-
+# this is the root for the vpc creation 
+ 
 # 1. Create the Custom Isolated VPC
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
