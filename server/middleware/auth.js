@@ -1,17 +1,29 @@
 import { clerkClient } from "@clerk/express";
+import User from "../models/User.js";
 
 export const protectAdmin = async (req, res, next) => {
   try {
     const { userId } = req.auth();
-    const user = await clerkClient.users.getUser(userId);
-
-    if (user.publicMetadata.role !== "admin") {
-      return res.status(403).json({ message: "Access denied. Admins only." });
+    if (!userId) {
+      return res.status(403).json({ success: false, message: "Access denied. Admins only." });
     }
 
-    next();
+    // Check Clerk publicMetadata first
+    const clerkUser = await clerkClient.users.getUser(userId);
+    if (clerkUser?.publicMetadata?.role === "admin") {
+      return next();
+    }
+
+    // Fallback: check role in MongoDB
+    const dbUser = await User.findById(userId);
+    if (dbUser?.role === "admin") {
+      return next();
+    }
+
+    return res.status(403).json({ success: false, message: "Access denied. Admins only." });
 
   } catch (error) {
-    return res.status(403).json({ message: "Access denied. Admins only." });
+    console.error("protectAdmin error:", error);
+    return res.status(403).json({ success: false, message: "Access denied. Admins only." });
   }
 };
