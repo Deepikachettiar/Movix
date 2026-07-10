@@ -1,6 +1,3 @@
-# this is the root caller to all modules
-
-
 terraform {
   required_providers {
     aws = {
@@ -12,13 +9,20 @@ terraform {
 
 provider "aws" {
   region = "us-east-1"
-
 }
 
-# Calling our custom VPC network structure module
+# 1. Call the VPC Module
 module "movix_network" {
-  source = "./modules/vpc"
+  source   = "./modules/vpc"
+  env_name = "movix-prod"
+}
+
+# 2. Call the EKS Module (NEW)
+module "movix_cluster" {
+  source = "./modules/eks"
   
-  # Override variable configuration if necessary, or let defaults execute
-  env_name = "movix-prod-infrastructure"
+  # Passing the outputs from the VPC module into the EKS module
+  env_name           = "movix-prod"
+  vpc_id             = module.movix_network.vpc_id
+  private_subnet_ids = module.movix_network.private_subnet_ids
 }
