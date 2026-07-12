@@ -1,8 +1,8 @@
 from pathlib import Path
 import os
-#from dotenv import load_dotenv
+from dotenv import load_dotenv
 
-#load_dotenv()
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -14,4 +14,4 @@ OPA_FILE = BASE_DIR / "reports" / "opa_report.json"
 
 REPORT_DIR = BASE_DIR / "reports"
 
-#OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = os.getenv("GEMINI_API_KEY")
