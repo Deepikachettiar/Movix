@@ -1,0 +1,96 @@
+{
+  "result": [
+    {
+      "expressions": [
+        {
+          "value": {
+            "eks": {
+              "deny": [
+                "EKS Cluster module.movix_cluster.aws_eks_cluster.main has public endpoint enabled."
+              ]
+            },
+            "encryption": {
+              "deny": []
+            },
+            "iam": {
+              "deny": []
+            },
+            "instance": {
+              "allowed_instance_types": [
+                "t3.medium",
+                "t3.micro",
+                "t3.small"
+              ],
+              "deny": []
+            },
+            "network": {
+              "deny": []
+            },
+            "region": {
+              "allowed_regions": [
+                "us-east-1a",
+                "us-east-1b"
+              ],
+              "deny": []
+            },
+            "securitygroups": {
+              "deny": []
+            },
+            "tags": {
+              "deny": [
+                "Resource module.movix_cluster.aws_eks_cluster.main has no tags defined.",
+                "Resource module.movix_cluster.aws_eks_node_group.main has no tags defined.",
+                "Resource module.movix_cluster.aws_iam_role.eks_cluster_role has no tags defined.",
+                "Resource module.movix_cluster.aws_iam_role.eks_node_role has no tags defined.",
+                "Resource module.movix_cluster.aws_kms_key.eks has no tags defined.",
+                "Resource module.movix_network.aws_cloudwatch_log_group.vpc_flow_logs has no tags defined.",
+                "Resource module.movix_network.aws_default_security_group.default has no tags defined.",
+                "Resource module.movix_network.aws_eip.nat_eip has no tags defined.",
+                "Resource module.movix_network.aws_flow_log.main has no tags defined.",
+                "Resource module.movix_network.aws_iam_role.flow_logs_role has no tags defined.",
+                "Resource module.movix_network.aws_internet_gateway.igw is missing required tag 'Environment'.",
+                "Resource module.movix_network.aws_internet_gateway.igw is missing required tag 'Owner'.",
+                "Resource module.movix_network.aws_internet_gateway.igw is missing required tag 'Project'.",
+                "Resource module.movix_network.aws_kms_key.flow_logs has no tags defined.",
+                "Resource module.movix_network.aws_nat_gateway.nat is missing required tag 'Environment'.",
+                "Resource module.movix_network.aws_nat_gateway.nat is missing required tag 'Owner'.",
+                "Resource module.movix_network.aws_nat_gateway.nat is missing required tag 'Project'.",
+                "Resource module.movix_network.aws_route_table.private is missing required tag 'Environment'.",
+                "Resource module.movix_network.aws_route_table.private is missing required tag 'Owner'.",
+                "Resource module.movix_network.aws_route_table.private is missing required tag 'Project'.",
+                "Resource module.movix_network.aws_route_table.public is missing required tag 'Environment'.",
+                "Resource module.movix_network.aws_route_table.public is missing required tag 'Owner'.",
+                "Resource module.movix_network.aws_route_table.public is missing required tag 'Project'.",
+                "Resource module.movix_network.aws_subnet.private[0] is missing required tag 'Environment'.",
+                "Resource module.movix_network.aws_subnet.private[0] is missing required tag 'Owner'.",
+                "Resource module.movix_network.aws_subnet.private[0] is missing required tag 'Project'.",
+                "Resource module.movix_network.aws_subnet.private[1] is missing required tag 'Environment'.",
+                "Resource module.movix_network.aws_subnet.private[1] is missing required tag 'Owner'.",
+                "Resource module.movix_network.aws_subnet.private[1] is missing required tag 'Project'.",
+                "Resource module.movix_network.aws_subnet.public[0] is missing required tag 'Environment'.",
+                "Resource module.movix_network.aws_subnet.public[0] is missing required tag 'Owner'.",
+                "Resource module.movix_network.aws_subnet.public[0] is missing required tag 'Project'.",
+                "Resource module.movix_network.aws_subnet.public[1] is missing required tag 'Environment'.",
+                "Resource module.movix_network.aws_subnet.public[1] is missing required tag 'Owner'.",
+                "Resource module.movix_network.aws_subnet.public[1] is missing required tag 'Project'.",
+                "Resource module.movix_network.aws_vpc.main is missing required tag 'Environment'.",
+                "Resource module.movix_network.aws_vpc.main is missing required tag 'Owner'.",
+                "Resource module.movix_network.aws_vpc.main is missing required tag 'Project'."
+              ],
+              "required_tags": [
+                "Environment",
+                "Owner",
+                "Project"
+              ]
+            }
+          },
+          "text": "data.terraform",
+          "location": {
+            "row": 1,
+            "col": 1
+          }
+        }
+      ]
+    }
+  ]
+}

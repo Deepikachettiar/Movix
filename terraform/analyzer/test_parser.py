@@ -5,12 +5,10 @@ plan = load_plan()
 
 resources = extract_resources(plan)
 
-print(resources)
-
-print()
-
+print("===== RESOURCE SUMMARY =====")
 print(summarize_resources(resources))
 
 print()
 
+print("===== ESTIMATED COST =====")
 print(estimate_cost(resources))
