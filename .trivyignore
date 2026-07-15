@@ -13,5 +13,4 @@ AVD-AWS-0041
 # Ignore IAM wildcard resource on flow logs policy (scoped to specific log group ARN with :* suffix, which is standard CloudWatch Logs practice)
 AVD-AWS-0057
 
-
 AVD-AWS-0039 
