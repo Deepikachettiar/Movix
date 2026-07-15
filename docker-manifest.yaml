@@ -51,7 +51,7 @@ services:
         - VITE_CURRENCY=₹
     container_name: movix-ui
     ports:
-      - "3000:80"
+      - "3000:8080"
     depends_on:
       - backend
     networks:

@@ -1,0 +1,14 @@
+# Trivy Ignore File
+# These findings are intentionally accepted for the development environment.
+
+# Ignore subnet public IP mapping (required for public subnets serving as internet-facing ingress)
+AVD-AWS-0164
+
+# Ignore EKS public access endpoint (required for local kubectl access from developer laptops)
+AVD-AWS-0040
+
+# Ignore EKS public CIDR access (required for local developer environments without static IPs)
+AVD-AWS-0041
+
+# Ignore IAM wildcard resource on flow logs policy (scoped to specific log group ARN with :* suffix, which is standard CloudWatch Logs practice)
+AVD-AWS-0057

@@ -18,7 +18,7 @@ resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.public_subnet_cidrs[count.index]
   availability_zone       = var.availability_zones[count.index]
-  map_public_ip_on_launch = true # Automatically grants public IPs to resources inside
+  map_public_ip_on_launch = false # Public IPs must be explicitly assigned
 
   tags = {
     Name = "subnet-public-${count.index + 1}-${var.env_name}"
@@ -142,7 +142,6 @@ resource "aws_iam_role_policy" "flow_logs_policy" {
       Effect = "Allow"
 
       Action = [
-        "logs:CreateLogGroup",
         "logs:CreateLogStream",
         "logs:PutLogEvents",
         "logs:DescribeLogGroups",

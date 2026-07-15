@@ -23,8 +23,10 @@ COPY . .
 
 RUN npm run build
 
-# Stage 2: Web Server Layer
-FROM nginx:1.25-alpine
+USER node
+
+# Stage 2: Web Server Layer (non-root)
+FROM nginxinc/nginx-unprivileged:1.25-alpine
 
 # Copy our custom routing profile 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
@@ -32,5 +34,9 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copy compiled files from stage 1 (Use /app/dist if your app utilizes Vite, or /app/build if it uses Create-React-App)
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-EXPOSE 80
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget --quiet --tries=1 --spider http://localhost:8080/ || exit 1
+
 CMD ["nginx", "-g", "daemon off;"]
