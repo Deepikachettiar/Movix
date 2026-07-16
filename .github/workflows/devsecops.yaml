@@ -10,75 +10,126 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Pull your React and Node.js code onto the GitHub runner
+      # ==========================================
+      # Checkout Repository
+      # ==========================================
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
 
-      # 2. SAST SCAN: Scan all raw source code for bugs and hardcoded secrets
-      - name: SonarCloud SAST Scan (Code Quality)
-        uses: SonarSource/sonarcloud-github-action@master
+      # ==========================================
+      # Setup Java for Sonar
+      # ==========================================
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # ==========================================
+      # SonarCloud Scan
+      # ==========================================
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
 
-      # 3. IaC & CONFIG SCAN: Scan Docker Compose, Dockerfiles, and Terraform for misconfigurations
-      - name: Trivy IaC & Configuration Scan (Database & Infra)
-        uses: aquasecurity/trivy-action@master
+      # ==========================================
+      # Trivy Configuration Scan
+      # ==========================================
+      - name: Trivy IaC Scan
+        uses: aquasecurity/trivy-action@0.33.1
         with:
-          scan-type: 'config'
+          scan-type: config
           hide-progress: false
-          exit-code: '1' # Fail the pipeline if CRITICAL/HIGH security issues exist in configs
-          severity: 'CRITICAL,HIGH'
+          severity: CRITICAL,HIGH
+          exit-code: '1'
 
-      # 4. Authenticate with Docker Hub so we can push our secure images later
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+      # ==========================================
+      # Docker Login
+      # ==========================================
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       # ==========================================
-      # BACKEND (NODE.JS) PIPELINE 
+      # Build Backend
       # ==========================================
-      
       - name: Build Backend Docker Image
-        # Point build context to the correct './server' directory
-        run: docker build --no-cache --pull -t ${{ secrets.DOCKER_USERNAME }}/movix-backend:latest ./server
+        run: |
+          docker build \
+            --no-cache \
+            --pull \
+            -t ${{ secrets.DOCKER_USERNAME }}/movix-backend:latest \
+            ./server
 
+      # ==========================================
+      # Debug Backend Image
+      # ==========================================
+      - name: Debug Backend Image
+        run: |
+          docker images
+          docker run --rm ${{ secrets.DOCKER_USERNAME }}/movix-backend:latest node -v
+          docker run --rm ${{ secrets.DOCKER_USERNAME }}/movix-backend:latest npm -v
+          docker run --rm ${{ secrets.DOCKER_USERNAME }}/movix-backend:latest npm ls picomatch || true
+          docker run --rm ${{ secrets.DOCKER_USERNAME }}/movix-backend:latest npm ls sigstore || true
 
-      - name: Trivy Scan (Backend)
-        uses: aquasecurity/trivy-action@master
+      # ==========================================
+      # Trivy Backend Scan
+      # ==========================================
+      - name: Trivy Backend Scan
+        uses: aquasecurity/trivy-action@0.33.1
         with:
-          image-ref: '${{ secrets.DOCKER_USERNAME }}/movix-backend:latest'
-          format: 'table'
-          exit-code: '1' # CRASH pipeline if CRITICAL/HIGH vulnerabilities are found
+          image-ref: ${{ secrets.DOCKER_USERNAME }}/movix-backend:latest
+          format: table
+          severity: CRITICAL,HIGH
+          vuln-type: os,library
           ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
 
-      - name: Push Backend to Docker Hub
-        # Only runs if Trivy passes with 0 Critical/High issues
+      # ==========================================
+      # Push Backend
+      # ==========================================
+      - name: Push Backend Image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/movix-backend:latest
 
       # ==========================================
-      # FRONTEND (REACT/NGINX) PIPELINE 
+      # Build Frontend
       # ==========================================
-
       - name: Build Frontend Docker Image
-        # Point build context to the correct './client' directory
-        run: docker build --no-cache --pull -t ${{ secrets.DOCKER_USERNAME }}/movix-frontend:latest ./client
+        run: |
+          docker build \
+            --no-cache \
+            --pull \
+            -t ${{ secrets.DOCKER_USERNAME }}/movix-frontend:latest \
+            ./client
 
-      - name: Trivy Scan (Frontend)
-        uses: aquasecurity/trivy-action@master
+      # ==========================================
+      # Debug Frontend Image
+      # ==========================================
+      - name: Debug Frontend Image
+        run: |
+          docker run --rm ${{ secrets.DOCKER_USERNAME }}/movix-frontend:latest nginx -v
+
+      # ==========================================
+      # Trivy Frontend Scan
+      # ==========================================
+      - name: Trivy Frontend Scan
+        uses: aquasecurity/trivy-action@0.33.1
         with:
-          image-ref: '${{ secrets.DOCKER_USERNAME }}/movix-frontend:latest'
-          format: 'table'
-          exit-code: '1'
+          image-ref: ${{ secrets.DOCKER_USERNAME }}/movix-frontend:latest
+          format: table
+          severity: CRITICAL,HIGH
+          vuln-type: os,library
           ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
 
-      - name: Push Frontend to Docker Hub
+      # ==========================================
+      # Push Frontend
+      # ==========================================
+      - name: Push Frontend Image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/movix-frontend:latest
