@@ -12,16 +12,30 @@ jobs:
     steps:
       # 1. Pull your React and Node.js code onto the GitHub runner
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 
 
       # 2. SAST SCAN: Scan all raw source code for bugs and hardcoded secrets
-      - name: SonarCloud SAST Scan (Code Quality)
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+      # OPTION A: Skip SonarCloud if having connectivity issues
+      # - name: SonarCloud SAST Scan (Code Quality)
+      #   uses: SonarSource/sonarcloud-github-action@v2.1.0
+      #   with:
+      #     args: >
+      #       -Dsonar.projectKey=Deepikachettiar_Movix
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+      #     SONAR_HOST_URL: https://sonarcloud.io
+
+      # OPTION B: Use lightweight security scanning instead
+      - name: Run Semgrep SAST Scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/owasp-top-ten
+            p/javascript
 
       # 3. IaC & CONFIG SCAN: Scan Docker Compose, Dockerfiles, and Terraform for misconfigurations
       - name: Trivy IaC & Configuration Scan (Database & Infra)
@@ -29,12 +43,13 @@ jobs:
         with:
           scan-type: 'config'
           hide-progress: false
-          exit-code: '1' # Fail the pipeline if CRITICAL/HIGH security issues exist in configs
+          exit-code: '1'
           severity: 'CRITICAL,HIGH'
+          scan-ref: '.'
 
       # 4. Authenticate with Docker Hub so we can push our secure images later
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -44,22 +59,27 @@ jobs:
       # ==========================================
       
       - name: Build Backend Docker Image
-        # Point build context to the correct './server' directory
         run: docker build --no-cache --pull -t ${{ secrets.DOCKER_USERNAME }}/movix-backend:latest ./server
-
 
       - name: Trivy Scan (Backend)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: '${{ secrets.DOCKER_USERNAME }}/movix-backend:latest'
-          format: 'table'
-          exit-code: '1' # CRASH pipeline if CRITICAL/HIGH vulnerabilities are found
+          format: 'sarif'
+          output: 'trivy-backend-results.sarif'
+          exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
 
+      - name: Upload Trivy Backend Results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-backend-results.sarif'
+          category: 'trivy-backend'
+
       - name: Push Backend to Docker Hub
-        # Only runs if Trivy passes with 0 Critical/High issues
         run: docker push ${{ secrets.DOCKER_USERNAME }}/movix-backend:latest
 
       # ==========================================
@@ -67,18 +87,25 @@ jobs:
       # ==========================================
 
       - name: Build Frontend Docker Image
-        # Point build context to the correct './client' directory
         run: docker build --no-cache --pull -t ${{ secrets.DOCKER_USERNAME }}/movix-frontend:latest ./client
 
       - name: Trivy Scan (Frontend)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: '${{ secrets.DOCKER_USERNAME }}/movix-frontend:latest'
-          format: 'table'
+          format: 'sarif'
+          output: 'trivy-frontend-results.sarif'
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy Frontend Results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-frontend-results.sarif'
+          category: 'trivy-frontend'
 
       - name: Push Frontend to Docker Hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/movix-frontend:latest
