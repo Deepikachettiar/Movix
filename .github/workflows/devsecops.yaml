@@ -47,9 +47,6 @@ jobs:
         # Point build context to the correct './server' directory
         run: docker build --no-cache --pull -t ${{ secrets.DOCKER_USERNAME }}/movix-backend:latest ./server
 
-      - name: Check npm version in image
-        run: |
-          docker run --rm ${{ secrets.DOCKER_USERNAME }}/movix-backend:latest npm -v
 
       - name: Trivy Scan (Backend)
         uses: aquasecurity/trivy-action@master
