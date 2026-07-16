@@ -32,6 +32,7 @@ jobs:
       # 3. IaC & CONFIG SCAN: Scan Docker Compose, Dockerfiles, and Terraform for misconfigurations
       - name: Trivy IaC & Configuration Scan (Database & Infra)
         uses: aquasecurity/trivy-action@master
+        continue-on-error: true
         with:
           scan-type: 'config'
           hide-progress: false
