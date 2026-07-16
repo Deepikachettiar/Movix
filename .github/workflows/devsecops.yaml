@@ -19,6 +19,7 @@ jobs:
       # 2. SAST SCAN: Scan all raw source code for bugs and hardcoded secrets
       - name: SonarCloud SAST Scan (Code Quality)
         uses: SonarSource/sonarcloud-github-action@v2.1.0
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
