@@ -17,25 +17,16 @@ jobs:
           fetch-depth: 0 
 
       # 2. SAST SCAN: Scan all raw source code for bugs and hardcoded secrets
-      # OPTION A: Skip SonarCloud if having connectivity issues
-      # - name: SonarCloud SAST Scan (Code Quality)
-      #   uses: SonarSource/sonarcloud-github-action@v2.1.0
-      #   with:
-      #     args: >
-      #       -Dsonar.projectKey=Deepikachettiar_Movix
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
-      #     SONAR_HOST_URL: https://sonarcloud.io
-
-      # OPTION B: Use lightweight security scanning instead
-      - name: Run Semgrep SAST Scan
-        uses: returntocorp/semgrep-action@v1
+      - name: SonarCloud SAST Scan (Code Quality)
+        uses: SonarSource/sonarcloud-github-action@v2.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
         with:
-          config: >-
-            p/security-audit
-            p/owasp-top-ten
-            p/javascript
+          args: >
+            -Dsonar.projectKey=Deepikachettiar_Movix
+            -Dsonar.organization=deepikachettiar
 
       # 3. IaC & CONFIG SCAN: Scan Docker Compose, Dockerfiles, and Terraform for misconfigurations
       - name: Trivy IaC & Configuration Scan (Database & Infra)
@@ -65,19 +56,11 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: '${{ secrets.DOCKER_USERNAME }}/movix-backend:latest'
-          format: 'sarif'
-          output: 'trivy-backend-results.sarif'
+          format: 'table'
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
-
-      - name: Upload Trivy Backend Results
-        if: always()
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-backend-results.sarif'
-          category: 'trivy-backend'
 
       - name: Push Backend to Docker Hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/movix-backend:latest
@@ -93,19 +76,11 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: '${{ secrets.DOCKER_USERNAME }}/movix-frontend:latest'
-          format: 'sarif'
-          output: 'trivy-frontend-results.sarif'
+          format: 'table'
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
-
-      - name: Upload Trivy Frontend Results
-        if: always()
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-frontend-results.sarif'
-          category: 'trivy-frontend'
 
       - name: Push Frontend to Docker Hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/movix-frontend:latest
