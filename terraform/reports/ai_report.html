@@ -1,61 +1,72 @@
 <h1>AWS Infrastructure Architecture Review</h1>
 <p><strong>Prepared by:</strong> Senior AWS Cloud Architect<br />
-<strong>Target Environment:</strong> Movix EKS Infrastructure  </p>
+<strong>Target Infrastructure:</strong> EKS &amp; VPC Foundation (<code>movix_cluster</code>)</p>
 <hr />
 <h3>1. Infrastructure Score</h3>
-<p><strong>82 / 100</strong><br />
-<em>The infrastructure exhibits a solid foundational footprint with structured networking (VPC, subnets, route tables), explicit KMS encryption, active VPC Flow Logs, and strong compliance with static security checks (50 Checkov passes). However, the score is held back by a critical security exposure and a total lack of resource tagging metadata.</em></p>
+<h3><strong>82/100</strong></h3>
+<p><em>The infrastructure exhibits an exceptionally strong foundation. Passing 50 out of 50 security/compliance checks in static analysis (Checkov) indicates excellent adherence to IaC deployment standards, proper KMS encryption implementation, and active monitoring configurations (such as VPC Flow Logs).</em></p>
+<hr />
 <h3>2. Production Readiness Score</h3>
-<p><strong>65 / 100</strong><br />
-<em>While technically functional, this environment is not production-ready. The public exposure of the Kubernetes control plane is a blocking security hazard. Additionally, the reliance on a single NAT Gateway introduces a single point of failure (SPOF) for private subnets, and the absence of tagging blocks enterprise governance, compliance, and cost tracking.</em></p>
+<h3><strong>65/100</strong></h3>
+<p><em>While the Terraform code quality is high, the architectural footprint is not yet production-ready. The presence of a single NAT Gateway exposes the network architecture to a Single Point of Failure (SPOF) across Availability Zones. Furthermore, the publicly exposed Kubernetes control plane and lack of structured metadata (tagging) prevent a production sign-off.</em></p>
 <hr />
 <h3>3. Security Assessment</h3>
 <ul>
-<li><strong>EKS Control Plane Exposure (Critical):</strong> The Kubernetes API server endpoint is publicly accessible. This exposes the cluster's management interface to the open internet, increasing the risk of zero-day exploits, brute-force attacks, and unauthorized access attempts.</li>
-<li><strong>Encryption &amp; Logging (Strong):</strong> The infrastructure correctly implements dedicated AWS KMS keys with aliases and utilizes VPC Flow Logs for network traffic auditing. A CloudWatch log group is also provisioned, indicating a strong baseline for observability.</li>
-<li><strong>IAM Configuration:</strong> Dedicated IAM roles, role attachments, and inline policies are mapped to EKS and node groups, following the principle of least privilege. </li>
+<li><strong>Control Plane Exposure (Critical):</strong> The EKS cluster (<code>aws_eks_cluster.main</code>) has its public endpoint enabled without CIDR restrictions. This exposes the Kubernetes API server to the public internet, making it vulnerable to brute force attacks, discovery scans, and potential zero-day exploits.</li>
+<li><strong>Encryption at Rest (Excellent):</strong> The architecture utilizes customer-managed keys (2 KMS keys with associated aliases) for encrypting data at rest, demonstrating strong adherence to compliance standards.</li>
+<li><strong>Network Auditing (Excellent):</strong> VPC Flow Logs (<code>aws_flow_log</code>) are configured and streaming to CloudWatch, providing complete visibility into network traffic.</li>
+<li><strong>IAM Configuration:</strong> IAM roles (3) and policies (1 custom, 4 managed attachments) are established. However, we must ensure least-privilege principles are enforced and transition to IAM Roles for Service Accounts (IRSA) for pod-level execution.</li>
 </ul>
 <hr />
 <h3>4. Cost Analysis</h3>
 <ul>
-<li><strong>Current Estimated Monthly Cost:</strong> $144.60  </li>
-<li><strong>Cost Drivers:</strong></li>
-<li><strong>AWS EKS Control Plane:</strong> ~$73.00/month (Fixed $0.10/hour charge per EKS cluster).</li>
-<li><strong>NAT Gateway:</strong> ~$32.40/month (Fixed hourly provisioning charge, excluding data processing fees).</li>
-<li><strong>EC2/EKS Node Group:</strong> Remaining balance, driven by the instance type selected for the worker nodes.</li>
-<li><strong>Architectural Context:</strong> While $144.60/month is exceptionally low for an enterprise-grade EKS cluster, the infrastructure must be optimized to ensure that idle or non-production resources are not wasting budget.</li>
+<li><strong>Estimated Monthly Cost:</strong> $144.60</li>
+<li><strong>Cost Realism Assessment:</strong> The static analysis engine flags this as a "High Cost." However, in practical AWS deployments, $144.60/month is highly cost-efficient for an EKS deployment. </li>
+<li><strong>Cost Drivers:</strong> </li>
+<li>EKS Control Plane flat rate: <strong>$73.00/month</strong> (~50% of total budget).</li>
+<li>NAT Gateway: <strong>$32.85/month</strong> (hourly rate, excluding data processing).</li>
+<li>EC2 Instances (Node Group) &amp; Elastic IP: Remaining <strong>~$38.75/month</strong> (indicates t3.medium or smaller instances, highly constrained for EKS production workloads).</li>
 </ul>
 <hr />
 <h3>5. Infrastructure Strengths</h3>
 <ul>
-<li><strong>Secure Defaults:</strong> 50 Checkov static analysis passes with 0 failures indicate high-quality Terraform code adherence regarding resource properties.</li>
-<li><strong>Proper Network Segmentation:</strong> Clear separation of public and private subnets (4 subnets across a customized VPC) with managed route tables.</li>
-<li><strong>Data Protection:</strong> Active encryption of sensitive resources utilizing custom KMS Keys instead of default AWS-managed keys.</li>
-<li><strong>Auditability:</strong> AWS Flow Logs are enabled to capture IP traffic flowing to and from network interfaces within the VPC.</li>
+<li><strong>Perfect Compliance Baseline:</strong> 50/50 passed Checkov static analysis rules. The baseline IaC quality is excellent.</li>
+<li><strong>State &amp; Cryptography Management:</strong> Use of dedicated KMS keys for EKS secrets/resources.</li>
+<li><strong>Active Monitoring:</strong> CloudWatch Log Group and VPC Flow Logs are pre-configured to capture control plane logs and packet-level metadata.</li>
+<li><strong>Clean Resource Segregation:</strong> Proper network layout utilizing 4 subnets, isolated routing tables, and default security group lockouts.</li>
 </ul>
 <hr />
 <h3>6. Critical Issues</h3>
 <ul>
-<li><strong>Public EKS API Server Endpoint:</strong> The <code>aws_eks_cluster.main</code> resource allows unrestricted public access to the Kubernetes control plane. This must be mitigated immediately to prevent unauthorized access.</li>
+<li><strong>EKS Public API Endpoint Enabled:</strong></li>
+<li><strong>Impact:</strong> High risk of unauthorized cluster access.</li>
+<li><strong>Remediation:</strong> Disable public access entirely and use AWS Client VPN/Bastion Host to access the cluster via the private endpoint, or restrict access strictly to trusted corporate CIDRs.</li>
 </ul>
 <hr />
 <h3>7. High Priority Improvements</h3>
-<ul>
-<li><strong>Establish Network High Availability:</strong> The current topology uses a single NAT Gateway. In a true multi-AZ production deployment, a NAT Gateway should be deployed in each Availability Zone to prevent a single AZ outage from disconnecting all private EKS worker nodes from the internet.</li>
-<li><strong>Governance and Metadata Tagging:</strong> Resolve the 38 missing tag violations. Standardize tags across all 31 resources to ensure compliance with enterprise cost allocation, security boundary enforcement, and owner accountability.</li>
-</ul>
+<ol>
+<li><strong>Remediate Missing Resource Tags (38 violations):</strong> </li>
+<li><strong>Impact:</strong> Loss of cost-allocation tracking, environment boundary visibility, and automated compliance enforcement.</li>
+<li><strong>Remediation:</strong> Introduce a unified tagging structure.</li>
+<li><strong>Mitigate Single Point of Failure (Network HA):</strong></li>
+<li><strong>Impact:</strong> The current architecture uses a single NAT Gateway (<code>aws_nat_gateway.1</code>) for 4 subnets. If the Availability Zone containing the NAT Gateway suffers an outage, all private subnets lose egress connectivity.</li>
+<li><strong>Remediation:</strong> Deploy one NAT Gateway per Availability Zone (typically 3 for a production environment).</li>
+</ol>
 <hr />
 <h3>8. Cost Optimization Suggestions</h3>
 <ul>
-<li><strong>Evaluate NAT Gateway Alternatives:</strong> If EKS nodes only need to communicate with AWS Services (e.g., ECR, S3, CloudWatch), replace the NAT Gateway with AWS VPC Endpoints (PrivateLink) to eliminate NAT hourly fees and data processing charges.</li>
-<li><strong>Utilize Spot Instances for EKS Node Group:</strong> For non-production workloads, transition the EKS Node Group to utilize EC2 Spot Instances, which can save up to 90% compared to On-Demand pricing.</li>
-<li><strong>EKS Cluster Lifecycle Management:</strong> If this is a sandbox/development environment, automate the teardown or scaling down of the worker nodes to zero outside of business hours.</li>
+<li><strong>Development/Test Environments:</strong> </li>
+<li>Replace the NAT Gateway with a t3.micro NAT Instance to lower costs from $32.85/mo to ~$4.00/mo.</li>
+<li>Use AWS Spot Instances for the EKS Node Group (<code>aws_eks_node_group</code>) with a fallback to On-Demand, yielding up to 70% savings on compute.</li>
+<li><strong>Production Environments:</strong></li>
+<li>Keep the EKS cluster running, but implement <strong>Karpenter</strong> for rapid node scaling down to zero replicas during off-peak hours.</li>
+<li>If the workload does not require the Kubernetes API ecosystem, evaluate a migration to <strong>AWS ECS with Fargate</strong> to eliminate the $73.00/mo flat EKS management fee.</li>
 </ul>
 <hr />
 <h3>9. Best Practices</h3>
 <ul>
-<li><strong>Implement Terraform Default Tags:</strong> Avoid manual tagging errors by utilizing the AWS Provider's <code>default_tags</code> block to automatically apply global metadata to all supported resources.
-  <code>harness
+<li><strong>Terraform Provider Tagging:</strong> Implement <code>default_tags</code> at the <code>aws</code> provider level in your Terraform block. This immediately resolves the 38 tag violations with minimal code footprint:
+  <code>hcl
   provider "aws" {
     default_tags {
       tags = {
@@ -65,16 +76,14 @@
       }
     }
   }</code></li>
-<li><strong>Control Plane Endpoint Restricting:</strong> Modify the EKS cluster config block to secure the API:
-  <code>harness
-  endpoint_private_access = true
-  endpoint_public_access  = false # Or restrict via public_access_cidrs</code></li>
-<li><strong>GitOps &amp; Policy-as-Code:</strong> Integrate Open Policy Agent (OPA) or tfsec into your CI/CD pipeline to block any deployments containing public EKS endpoints or missing mandatory tags in the future.</li>
+<li><strong>EKS Private Access:</strong> Update EKS configuration block to secure the control plane:
+  <code>hcl
+  vpc_config {
+    endpoint_private_access = true
+    endpoint_public_access  = false # Or restrict using public_access_cidrs
+  }</code></li>
 </ul>
 <hr />
 <h3>10. Final Recommendation</h3>
-<p>The Terraform code exhibits excellent compliance and structural integrity but is compromised by <strong>one critical security vulnerability (Public EKS API)</strong> and <strong>poor metadata governance (Missing Tags)</strong>. </p>
-<p><strong>Action Plan:</strong>
-1. <strong>Immediately</strong> restrict the EKS cluster's <code>endpoint_public_access</code> to <code>false</code> (enabling private access), or restrict <code>public_access_cidrs</code> to your corporate VPN/office IP ranges.
-2. Implement the <strong>global provider-level tagging</strong> solution outlined in Section 9 to resolve all 38 violations in a single deployment.
-3. Once these two modifications are applied, this infrastructure will be fully ready to support production workloads.</p>
+<p>This architecture represents a high-quality codebase with a minor security configuration flaw and an outstanding compliance profile. </p>
+<p><strong>Recommendation:</strong> Do not deploy this to a production environment in its current state. Establish a private EKS endpoint, resolve the NAT Gateway redundancy limitation, and apply global tags via the Terraform AWS provider. Once these three changes are applied, this infrastructure is highly recommended for production deployment.</p>
